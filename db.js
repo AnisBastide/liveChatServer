@@ -38,11 +38,12 @@ class Database{
      * @param {Boolean} isAdmin 
      * @return {import('mongoose/node_modules/mongodb').Auth}
      */
-    async addUser(email, password, isAdmin = false) {
+    async addUser(email, password, pseudo, isAdmin = false) {
         if (this.validateEmail(email) && this.validatePassword(password)) {
             let auth = new this.Auth({
                 mail: email,
                 password: await this.hashPwd(password),
+                pseudo: pseudo,
                 admin: isAdmin
             })
             await auth.save();
@@ -127,10 +128,10 @@ class Database{
         return user.admin;
     }
 
-    async registerMessage(message, testPseudo){
+    async registerMessage(message, pseudo){
         let messageCoucou = new this.Message({
             content: message,
-            author: testPseudo,
+            author: pseudo,
             channelId: 1,
         })
         await messageCoucou.save();

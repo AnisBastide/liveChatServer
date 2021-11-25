@@ -44,7 +44,8 @@ io.on('connection', socketClient => {
     socketClient.on('message-sent', data => {
 		console.log(socketClient.id, 'message-sent', data)
         console.log('session mail : ' + session.mail)
-        database.registerMessage(data.data, session.mail)
+
+        database.registerMessage(data.data, session.pseudo)
 	})
 
 })
@@ -63,6 +64,7 @@ app.post('/login', async (req, res) => {
 
         req.session.mail = req.body['mail']
         session.mail = req.body['mail']
+        session.pseudo = user.pseudo
         // console.log('req.session.mail : ' + req.session.mail)
         // console.log('req.body[mail] : ' + req.body['mail'])
 
@@ -87,7 +89,7 @@ app.get('/logout', (req, res) => {
 app.post('/register', async (req, res) => {
     let user = await database.Auth.findOne({mail:req.body['mail']})
     if (!user) {
-        let newUser = await database.addUser(req.body['mail'],req.body['password'])
+        let newUser = await database.addUser(req.body['mail'],req.body['password'], req.body['pseudo'])
         if (newUser) {
             res.render('home.html', {
                 title : 'ENREGISTRE !'
