@@ -1,0 +1,60 @@
+html, body {
+  height: 100%;
+  background-color: #EDB5B5;
+  font-family: "Open Sans", sans-serif;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.title {
+  text-align: center;
+  font-size: 45px;
+}
+
+#chat .chat-container {
+  position: relative;
+  width: 600px;
+  height: 500px;
+  background-color: white;
+  margin: auto;
+}
+#chat .chat-container .chat-interface {
+  height: 100%;
+  overflow-y: scroll;
+}
+#chat .chat-container .chat-interface .messageContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+#chat .chat-container .chat-interface .messageContainer .date {
+  font-size: 11px;
+}
+#chat .chat-container .bottom-chat {
+  display: flex;
+  align-items: end;
+}
+#chat .chat-container .bottom-chat input {
+  width: 100%;
+}
+
+nav {
+  max-width: 1200px;
+  margin: auto;
+}
+nav ul {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  list-style-type: none;
+}
+nav ul li {
+  font-weight: bold;
+  margin-left: 20px;
+}
+nav ul li:last-child {
+  margin-left: auto;
+}/*# sourceMappingURL=style.css.map */
