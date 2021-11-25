@@ -2,30 +2,74 @@ const express = require('express')
 const app = express()
 const port = 3001
 const db = require('./db')
-
 const router = require('./router')
 const nunjucks = require('nunjucks')
-
 nunjucks.configure('views', {
     autoescape: true,
     express: app
 })
-
-app.use(express.static('public'))
-
-app.use('/pages', router)
-
+const session = require('express-session')
 let database = new db()
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
+app.use(express.static('public'))
+app.use('/pages', router)
+app.use(session({
+  
+    // It holds the secret key for session
+    secret: 'Your_Secret_Key',
+  
+    // Forces the session to be saved
+    // back to the session store
+    resave: true,
+  
+    // Forces a session that is "uninitialized"
+    // to be saved to the store
+    saveUninitialized: true
+}))
 
+app.get('/', async (req, res) => {
+    //database.hashPwd('tetstkjqsjshjlqdhs')
+    res.render('home.html', {
+        title : req.session.mail || 'test session' 
+    })
+})
+
+app.post('/login', async (req, res) => {
+    let user = await database.getUser(req.body['mail'])
+    if (user && database.checkPwd(user.password, req.body['password'])) {
+        req.session.mail = req.body['mail']
+        res.redirect('/');
+    } else {
+        res.render('home.html', {
+            title : 'Combinaison mdp mail incorrect'
+        })
+    }
+})
+
+app.get('/logout', (req, res) => {
+    req.session.destroy(err => {
+    if (err) {
+        return console.log(err);
+    }
+    res.redirect('/session');
+    })
+});
 
 app.post('/register', async (req, res) => {
     let user = await database.Auth.findOne({mail:req.body['mail']})
     if (!user) {
-        await database.addUser(req.body['mail'],req.body['password'])
+        let newUser = await database.addUser(req.body['mail'],req.body['password'])
+        if (newUser) {
+            res.render('home.html', {
+                title : 'ENREGISTRE !'
+            })
+        }
+    } else {
+        res.render('home.html', {
+            title : 'ce mail existe deja fdp'
+        })
     }
-    res.end()
 })
 
 app.delete('/:id', async(req, res) => {
@@ -39,15 +83,15 @@ app.delete('/:id', async(req, res) => {
 })
 
 app.patch('/:id', async(req, res) => {
-    let user = await database.getUser('id')
+    let user = await database.getUserById('id')
     let newUserInfo = new  database.Auth({mail:req.body['mail'],password:req.body['password']})
     await database.updateUser(user,newUserInfo)
     res.end()
 })
 
-app.get('/:id', async (req, res) => {
-    return await database.getUser(req.params.id)
-})
+// app.get('/:id', async (req, res) => {
+//     return await database.getUserById(req.params.id)
+// })
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
