@@ -1,17 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <a href="/logout"><button>LOGOUT</button></a>
-    <a href="/pages/login"><button>LOGIN</button></a>
+{% include "layout.html" %}
 
-    <h1>coucou Anis</h1>
-    <p>{{ title }}</p>
+{% include "title.html" %}
+
+{% include "navbar.html" %}
+
     <form action="/register" method="post">
         <input type="email" name="mail">
         <input type="password" name="password">
@@ -37,5 +29,4 @@
         <input type="submit">
     </form> -->
     
-</body>
-</html>
+{% include "footer.html" %}

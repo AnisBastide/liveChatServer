@@ -1,0 +1,41 @@
+{% include "layout.html" %}
+
+{% include "title.html" %}
+
+{% include "navbar.html" %}
+
+
+    <div id="chat">
+        <div class='chat-container'>
+            <div class="chat-interface">
+            </div>
+            <div class="bottom-chat">
+                <input type="textfield">
+                <button type="submit" id="sendMsg">Envoyer</button>
+            </div>
+        </div>
+    </div>
+{% include "footer.html" %}
+
+<script>
+    
+
+    function displayMessage(htmlMessage) {
+        document.querySelector(".chat-interface").innerHTML += htmlMessage
+    }
+
+    window.addEventListener('load', function () {
+
+        let messageExample = {
+            content: "salut c'est un message",
+            time: Date.now()
+        }
+
+        let htmlMessage = '<div class="messageContainer"><p class="date">' + messageExample.time
+         + ' : </p><p class="message">' + messageExample.content + '</p></div>'
+
+        document.querySelector("#sendMsg").addEventListener("click", ()=>{
+            displayMessage(htmlMessage)
+        })
+    })
+</script>

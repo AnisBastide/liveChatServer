@@ -14,6 +14,12 @@ router.get('/login', async(req,res) => {
     })
 })
 
+router.get('/chat', async(req,res) => {
+    res.render('chat.html', {
+        title : 'blabla'
+    })
+})
+
 // router.get('/test', async(req,res) => {
 //     test.testDelete(req,res)
 // })
