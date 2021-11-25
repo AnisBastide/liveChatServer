@@ -4,7 +4,12 @@ const port = 3001
 const db = require('./db')
 const router = require('./router')
 const nunjucks = require('nunjucks')
+const session = require('express-session')
+var cookieParser = require('cookie-parser');
+app.use(cookieParser());
 
+
+// configure socket.io
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require('socket.io')
@@ -14,62 +19,77 @@ nunjucks.configure('views', {
     autoescape: true,
     express: app
 })
-const session = require('express-session')
 let database = new db()
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.use(express.static('styles'))
 app.use('/pages', router)
-app.use(session({
-  
-    // It holds the secret key for session
-    secret: 'Your_Secret_Key',
-  
-    // Forces the session to be saved
-    // back to the session store
+// store = new connect.middleware.session.MemoryStore();
+var store = new session.MemoryStore;
+
+const sessionMiddleware = session({
+    secret: 'sssssshhhhhhh',
     resave: true,
-  
-    // Forces a session that is "uninitialized"
-    // to be saved to the store
-    saveUninitialized: true
-}))
+    saveUninitialized: true,
+    cookie: { maxAge: 60000 }
+})
+
+app.use(sessionMiddleware)
+
+
+var users = [];
+
+io.use((socketClient, next) => {
+    sessionMiddleware(socketClient.request, {}, next);
+    // sessionMiddleware(socket.request, socket.request.res, next); will not work with websocket-only
+    // connections, as 'socket.request.res' will be undefined in that case
+});
+
 
 io.on('connection', socketClient => {
 	console.log('Un client est connecté', socketClient.id)
-
-	socketClient.on('event-name', data => {
-		console.log(socketClient.id, 'event-name', data)
-	})
+    const session = socketClient.request.session;
+    session.connections++;
+    session.test = socketClient.id;
+    session.save();
+    console.log(socketClient.request.mail)
 
     socketClient.on('message-sent', data => {
 		console.log(socketClient.id, 'message-sent', data)
-        console.log('session mail : ' + session.mail)
+        console.log('message sent - session mail : ' + session.test)
 
-        database.registerMessage(data.data, session.pseudo)
+        // console.log('data.data : ' + data)
+        // console.log('content : ' + data.content)
+        // console.log('cookie: ' + data.cookie)
+
+
+
+        //database.registerMessage(data.data, )
 	})
 
 })
 
 app.get('/', async (req, res) => {
-    //database.hashPwd('tetstkjqsjshjlqdhs')
-    res.render('home.html', {
-        title : req.session.mail || 'test session' 
-    })
+    res.render('home.html')
 })
 
 app.post('/login', async (req, res) => {
     let user = await database.getUser(req.body['mail'])
     if (user && database.checkPwd(user.password, req.body['password'])) {
 
+        users.push(user)
+
+
 
         req.session.mail = req.body['mail']
-        session.mail = req.body['mail']
-        session.pseudo = user.pseudo
+        req.session.pseudo = user.pseudo
+
+        // store.pseudo = user.pseudo
+        // store.mail = user.mail
         // console.log('req.session.mail : ' + req.session.mail)
         // console.log('req.body[mail] : ' + req.body['mail'])
 
-        
-        res.redirect('/');
+        res.cookie('user', users.length).redirect('/');
     } else {
         res.render('home.html', {
             title : 'Combinaison mdp mail incorrect'
@@ -128,7 +148,7 @@ app.patch('/:id', async(req, res) => {
 // })
 
 app.get('/chat', async(req,res) => {
-    console.log('reqsession : ' + req.session.mail)
+    //console.log('reqsession : ' + req.session.mail)
     let myArray = await database.Message.find({channelId: 1})
     if (req.session.mail) {
         res.render('chat.html', {
@@ -140,6 +160,6 @@ app.get('/chat', async(req,res) => {
 })
 
 server.listen(8082, () => {
-    console.log('dgsfhgjhjkkkugjkfhdghsghghjgfhjdxwxh')
+    console.log('listenning on 8082')
 })
 

@@ -29,12 +29,12 @@
 
     // Initialise la connexion au serveur Socket.IO
     const socket = io()
-    // Une fois connecté, l'evenement "connect" est déclenché
-    socket.on('connect', () => {
-        console.log('connected !')
-        // Envoi de l'event "event-name" au serveur
-        socket.emit('event-name', { ladata: 'bonjour' })
-    })
+    // // Une fois connecté, l'evenement "connect" est déclenché
+    // socket.on('connect', () => {
+    //     console.log('connected !')
+    //     // Envoi de l'event "event-name" au serveur
+    //     socket.emit('event-name', { ladata: 'bonjour' })
+    // })
     
 
     function displayMessage(htmlMessage) {
@@ -55,7 +55,10 @@
             //displayMessage(htmlMessage)
             let content = document.getElementById('message-content').value
             
-            socket.emit('message-sent', { data: content })
+            socket.emit('message-sent', { 
+                content: content, 
+                cookie : document.cookie
+            })
         })
     })
 
