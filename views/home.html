@@ -18,6 +18,18 @@
         <input type="submit">
     </form>
 
+    <script src="/socket.io/socket.io.min.js"></script>
+	<script>
+		// Initialise la connexion au serveur Socket.IO
+		const socket = io()
+		// Une fois connecté, l'evenement "connect" est déclenché
+		socket.on('connect', () => {
+			console.log('connected !')
+			// Envoi de l'event "event-name" au serveur
+			socket.emit('event-name', { ladata: 'bonjour' })
+		})
+	</script>
+
     <!-- <h1>login</h1>
     <form action="/login" method="post">
         <input type="email" name="mail">

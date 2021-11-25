@@ -4,6 +4,12 @@ const port = 3001
 const db = require('./db')
 const router = require('./router')
 const nunjucks = require('nunjucks')
+
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require('socket.io')
+const io = new Server(server);
+
 nunjucks.configure('views', {
     autoescape: true,
     express: app
@@ -27,6 +33,15 @@ app.use(session({
     // to be saved to the store
     saveUninitialized: true
 }))
+
+io.on('connection', socketClient => {
+	console.log('Un client est connecté', socketClient.id)
+
+	socketClient.on('event-name', data => {
+		console.log(socketClient.id, 'event-name', data)
+	})
+
+})
 
 app.get('/', async (req, res) => {
     //database.hashPwd('tetstkjqsjshjlqdhs')
@@ -93,8 +108,12 @@ app.patch('/:id', async(req, res) => {
 //     return await database.getUserById(req.params.id)
 // })
 
-app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
+// app.listen(port, () => {
+//     console.log(`Example app listening at http://localhost:${port}`)
+// })
+
+server.listen(8082, () => {
+    console.log('dgsfhgjhjkkkugjkfhdghsghghjgfhjdxwxh')
 })
 
 
