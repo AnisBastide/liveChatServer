@@ -44,10 +44,6 @@ a {
   font-size: 11px;
 }
 
-#chat .chat-container .chat-interface .messageContainer .message {
-  color: aqua;
-}
-
 #chat .chat-container .bottom-chat {
   display: -webkit-box;
   display: -ms-flexbox;

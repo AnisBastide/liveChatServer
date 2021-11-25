@@ -8,11 +8,12 @@ class Database{
     dbSchema = new mongoose.Schema({
         mail: String,
         password: String,
+        pseudo: String,
         admin: { type: Boolean, default: false }
     });
     messageSchema = new mongoose.Schema({
         content: String,
-        author: Number,
+        author: String,
         channelId: Number
     }); 
     channelSchema = new mongoose.Schema({
@@ -126,10 +127,10 @@ class Database{
         return user.admin;
     }
 
-    async registerMessage(message){
+    async registerMessage(message, testPseudo){
         let messageCoucou = new this.Message({
             content: message,
-            author: 12345,
+            author: testPseudo,
             channelId: 1,
         })
         await messageCoucou.save();

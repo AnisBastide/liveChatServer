@@ -43,7 +43,8 @@ io.on('connection', socketClient => {
 
     socketClient.on('message-sent', data => {
 		console.log(socketClient.id, 'message-sent', data)
-        database.registerMessage(data.data)
+        console.log('session mail : ' + session.mail)
+        database.registerMessage(data.data, session.mail)
 	})
 
 })
@@ -61,6 +62,7 @@ app.post('/login', async (req, res) => {
 
 
         req.session.mail = req.body['mail']
+        session.mail = req.body['mail']
         // console.log('req.session.mail : ' + req.session.mail)
         // console.log('req.body[mail] : ' + req.body['mail'])
 
@@ -125,9 +127,10 @@ app.patch('/:id', async(req, res) => {
 
 app.get('/chat', async(req,res) => {
     console.log('reqsession : ' + req.session.mail)
+    let myArray = await database.Message.find({channelId: 1})
     if (req.session.mail) {
         res.render('chat.html', {
-            title : 'blabla'
+            messages : myArray
         })
     } else {
         res.redirect('/pages/login');

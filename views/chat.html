@@ -8,6 +8,14 @@
     <div id="chat">
         <div class='chat-container'>
             <div class="chat-interface">
+                {% for msg in messages %}
+                <div class="messageContainer">
+                    <p class="date">{{msg.author}}</p>
+                    <p class="message">
+                        {{ msg.content }}
+                    </p>
+                </div>                
+                {% endfor %}
             </div>
             <div class="bottom-chat">
                 <input type="textfield" id="message-content">
@@ -35,16 +43,16 @@
 
     window.addEventListener('load', function () {
 
-        let messageExample = {
-            content: "salut c'est un message",
-            time: Date.now()
-        }
+        // let messageExample = {
+        //     content: "salut c'est un message",
+        //     time: Date.now()
+        // }
 
-        let htmlMessage = '<div class="messageContainer"><p class="date">' + messageExample.time
-         + ' : </p><p class="message">' + messageExample.content + '</p></div>'
+        // let htmlMessage = '<div class="messageContainer"><p class="date">' + messageExample.time
+        //  + ' : </p><p class="message">' + messageExample.content + '</p></div>'
 
         document.querySelector("#sendMsg").addEventListener("click", ()=>{
-            displayMessage(htmlMessage)
+            //displayMessage(htmlMessage)
             let content = document.getElementById('message-content').value
             
             socket.emit('message-sent', { data: content })
