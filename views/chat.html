@@ -10,7 +10,7 @@
             <div class="chat-interface">
             </div>
             <div class="bottom-chat">
-                <input type="textfield">
+                <input type="textfield" id="message-content">
                 <button type="submit" id="sendMsg">Envoyer</button>
             </div>
         </div>
@@ -18,6 +18,15 @@
 {% include "footer.html" %}
 
 <script>
+
+    // Initialise la connexion au serveur Socket.IO
+    const socket = io()
+    // Une fois connecté, l'evenement "connect" est déclenché
+    socket.on('connect', () => {
+        console.log('connected !')
+        // Envoi de l'event "event-name" au serveur
+        socket.emit('event-name', { ladata: 'bonjour' })
+    })
     
 
     function displayMessage(htmlMessage) {
@@ -36,6 +45,11 @@
 
         document.querySelector("#sendMsg").addEventListener("click", ()=>{
             displayMessage(htmlMessage)
+            let content = document.getElementById('message-content').value
+            
+            socket.emit('message-sent', { data: content })
         })
     })
+
+    
 </script>

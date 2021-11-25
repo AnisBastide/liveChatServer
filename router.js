@@ -1,6 +1,4 @@
 const Router = require('express').Router
-const test = require('./main')
-
 const router = Router();
 
 router.get('/', async(req,res) => {
@@ -14,11 +12,15 @@ router.get('/login', async(req,res) => {
     })
 })
 
-router.get('/chat', async(req,res) => {
-    res.render('chat.html', {
-        title : 'blabla'
-    })
-})
+// router.get('/chat', async(req,res) => {
+//     console.log('reqsession : ' + session)
+//     if (req.session.mail) {
+//         res.render('chat.html', {
+//             title : 'blabla'
+//         })
+//     }
+//     res.redirect('/pages/login');
+// })
 
 // router.get('/test', async(req,res) => {
 //     test.testDelete(req,res)

@@ -41,6 +41,11 @@ io.on('connection', socketClient => {
 		console.log(socketClient.id, 'event-name', data)
 	})
 
+    socketClient.on('message-sent', data => {
+		console.log(socketClient.id, 'message-sent', data)
+        database.registerMessage(data.data)
+	})
+
 })
 
 app.get('/', async (req, res) => {
@@ -53,7 +58,13 @@ app.get('/', async (req, res) => {
 app.post('/login', async (req, res) => {
     let user = await database.getUser(req.body['mail'])
     if (user && database.checkPwd(user.password, req.body['password'])) {
+
+
         req.session.mail = req.body['mail']
+        // console.log('req.session.mail : ' + req.session.mail)
+        // console.log('req.body[mail] : ' + req.body['mail'])
+
+        
         res.redirect('/');
     } else {
         res.render('home.html', {
@@ -67,7 +78,7 @@ app.get('/logout', (req, res) => {
     if (err) {
         return console.log(err);
     }
-    res.redirect('/session');
+    res.redirect('/');
     })
 });
 
@@ -82,7 +93,7 @@ app.post('/register', async (req, res) => {
         }
     } else {
         res.render('home.html', {
-            title : 'ce mail existe deja fdp'
+            title : 'ce mail existe deja !'
         })
     }
 })
@@ -112,8 +123,18 @@ app.patch('/:id', async(req, res) => {
 //     console.log(`Example app listening at http://localhost:${port}`)
 // })
 
+app.get('/chat', async(req,res) => {
+    console.log('reqsession : ' + req.session.mail)
+    if (req.session.mail) {
+        res.render('chat.html', {
+            title : 'blabla'
+        })
+    } else {
+        res.redirect('/pages/login');
+    }
+})
+
 server.listen(8082, () => {
     console.log('dgsfhgjhjkkkugjkfhdghsghghjgfhjdxwxh')
 })
-
 

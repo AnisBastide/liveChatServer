@@ -10,7 +10,19 @@ class Database{
         password: String,
         admin: { type: Boolean, default: false }
     });
+    messageSchema = new mongoose.Schema({
+        content: String,
+        author: Number,
+        channelId: Number
+    }); 
+    channelSchema = new mongoose.Schema({
+        title: String,
+        channelId : Number
+    })
     Auth = mongoose.model('auth', this.dbSchema);
+    Message = mongoose.model('message', this.messageSchema)
+    Channel = mongoose.model('channel', this.channelSchema)
+
     constructor() {
         this.connect()
     }
@@ -112,6 +124,16 @@ class Database{
     async isAdmin(userId){
         let user = await this.getUserById(userId);
         return user.admin;
+    }
+
+    async registerMessage(message){
+        let messageCoucou = new this.Message({
+            content: message,
+            author: 12345,
+            channelId: 1,
+        })
+        await messageCoucou.save();
+        return messageCoucou
     }
 
     validateEmail(mail) {
