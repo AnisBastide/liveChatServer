@@ -37,7 +37,7 @@ app.use(session({
 
 
 /**
- * Catches the connection event to the server socket.io
+ * Catches the connection event
  * @param {[Object Object]} socketClient
  */
 io.on('connection', socketClient => {
@@ -67,13 +67,10 @@ app.get('/', async (req, res) => {
     })
 })
 
-//We handle the '/login' route
+//We handle the login and check if user is existing then create the cookies of his session
 app.post('/login', async (req, res) => {
     var user = await database.getUser(req.body['mail'])
-    var userPseudo = await database.getUser(req.body['Pseudo'])
     if (user && database.checkPwd(user.password, req.body['password'])) {
-        console.log("session id : " + req.session.id)
-        globalThis.pseudoUser = res.cookie('mail', req.body['mail'])
         res.cookie('pseudo', user.pseudo)
         req.session.mail = req.body['mail']
         session.mail = req.body['mail']
@@ -86,6 +83,7 @@ app.post('/login', async (req, res) => {
     }
 })
 
+//We handle the '/logout' route and disconnect the user
 app.get('/logout', (req, res) => {
     req.session.destroy(err => {
     if (err) {
@@ -95,26 +93,31 @@ app.get('/logout', (req, res) => {
     })
 });
 
+//We handle the '/login' route 
 app.get('/login', (req, res) => {
     res.render('login.html')
 });
 
+//We handle the registering of the user
 app.post('/register', async (req, res) => {
     let user = await database.Auth.findOne({mail:req.body['mail']})
-    if (!user) {
-        let newUser = await database.addUser(req.body['mail'],req.body['password'], req.body['pseudo'])
-        .then((success)=>{
+    var userPseudo = await database.Auth.findOne({pseudo:req.body['pseudo']})
+    //If the email and the pseudo doesn't already exist we're registering the user
+    if (!user && !userPseudo) {
+        await database.addUser(req.body['mail'],req.body['password'], req.body['pseudo'])
+        .then(()=>{
             res.render('home.html', {
                 title : 'ENREGISTRE !'
             })
         })
     } else {
         res.render('home.html', {
-            title : 'ce mail existe deja !'
+            title : 'ce mail ou ce pseudo existe deja !'
         })
     }
 })
 
+//We handle the '/:id' route to delete a user 
 app.delete('/:id', async(req, res) => {
     let deleted = await database.deleteUser(req.params.id)
     if(deleted){
@@ -125,6 +128,7 @@ app.delete('/:id', async(req, res) => {
     }
 })
 
+//We handle the '/:id' route to update a user 
 app.patch('/:id', async(req, res) => {
     let user = await database.getUserById('id')
     let newUserInfo = new  database.Auth({mail:req.body['mail'],password:req.body['password']})
@@ -132,8 +136,9 @@ app.patch('/:id', async(req, res) => {
     res.end()
 }) 
 
+//We handle the '/chat' route to render the chat page to the user
 app.get('/chat', async(req,res) => {
-    console.log('reqsession : ' + req.session.mail)
+    //we display the messages of the first channel in the chat interface
     let myArray = await database.Message.find({channelId: 1})
     if (req.session.mail) {
         res.render('chat.html', {
@@ -144,6 +149,7 @@ app.get('/chat', async(req,res) => {
     }
 })
 
+//We establish the socket.IO connection
 server.listen(8082, () => {
     console.log('connecté au serveur')
 })
