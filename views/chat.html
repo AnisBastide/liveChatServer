@@ -17,10 +17,8 @@
             <div class="chat-interface">
                 {% for msg in messages %}
                 <div class="messageContainer">
-                    <p class="date">{{msg.author}}</p>
-                    <p class="message">
-                        {{ msg.content }}
-                    </p>
+                    <p>{{msg.author}}&nbsp:&nbsp</p>
+                    <p>{{ msg.content }}</p>
                 </div>                
                 {% endfor %}
             </div>

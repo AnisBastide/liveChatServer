@@ -39,14 +39,14 @@
 
 {% include "navbar.html" %}
 
-<div id="login">
-    <div class="loginContainer">
-        <h3>Login</h3>
-        <form action="/login" method="POST">
-          <input type="text" placeholder="email" name="mail">
-          <input type="password" placeholder="password" name="password">
-          <button type="submit">Connection</button>
-          <a href="/register">S'enregistrer</a>
+<div id="register">
+    <div class="registerContainer">
+        <h3>Register</h3>
+        <form action="/register" method="POST">
+          <input type="text" placeholder="email" name="regmail">
+          <input type="text" placeholder="pseudo" name="regpseudo">
+          <input type="password" placeholder="password" name="regpassword">
+          <button type="submit">S'enregistrer</button>
         </form>
     </div>
 </div>

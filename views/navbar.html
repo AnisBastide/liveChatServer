@@ -12,9 +12,15 @@
             <li>
                 <a href="/interfaceAdmin">Interface Admin</a>
             </li>
-            <li>
+            {% if isConnected %}
+            <li class="log">
                 <a href="/logout">Se déconnecter</a>
             </li>
+            {% else %}
+            <li class="log">
+                <a href="/login">Se connecter</a>
+            </li>
+            {% endif %}
         </ul>
     </nav>
 

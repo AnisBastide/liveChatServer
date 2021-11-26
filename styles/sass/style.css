@@ -30,9 +30,6 @@ a {
   flex-direction: row;
   align-items: center;
 }
-#chat .chat-container .chat-interface .messageContainer .date {
-  font-size: 11px;
-}
 #chat .chat-container .bottom-chat {
   display: flex;
   align-items: end;
@@ -55,6 +52,59 @@ nav ul li {
   font-weight: bold;
   margin-left: 20px;
 }
-nav ul li:last-child {
+nav ul .log {
   margin-left: auto;
+}
+
+#error h1 {
+  font-size: 50px;
+  color: red;
+}
+
+#login {
+  display: flex;
+  justify-content: center;
+}
+#login .loginContainer {
+  text-align: center;
+  padding: 70px 50px;
+  background-color: rgba(250, 250, 250, 0.6);
+}
+#login .loginContainer h3 {
+  margin-top: 0;
+}
+#login .loginContainer form {
+  display: flex;
+  flex-direction: column;
+}
+#login .loginContainer form input {
+  margin-bottom: 20px;
+}
+#login .loginContainer form button {
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+#register {
+  display: flex;
+  justify-content: center;
+}
+#register .registerContainer {
+  text-align: center;
+  padding: 70px 50px;
+  background-color: rgba(250, 250, 250, 0.6);
+}
+#register .registerContainer h3 {
+  margin-top: 0;
+}
+#register .registerContainer form {
+  display: flex;
+  flex-direction: column;
+}
+#register .registerContainer form input {
+  margin-bottom: 20px;
+}
+#register .registerContainer form button {
+  margin-bottom: 10px;
+  width: 100%;
 }/*# sourceMappingURL=style.css.map */
