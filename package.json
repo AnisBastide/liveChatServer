@@ -19,6 +19,7 @@
     "mongodb": "^4.2.0",
     "mongoose": "^6.0.13",
     "nunjucks": "^3.2.3",
+    "session.socket.io": "^0.2.1",
     "socket.io": "^4.4.0"
   }
 }

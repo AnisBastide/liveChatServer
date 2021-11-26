@@ -5,6 +5,13 @@
 {% include "navbar.html" %}
 
 
+    <div>
+        <select id="channels">
+            {% for channel in channels %}
+            <option value={{ channel.channelId }}>{{ channel.title }}</option>
+            {% endfor %}
+        </select>
+    </div>
     <div id="chat">
         <div class='chat-container'>
             <div class="chat-interface">
@@ -24,7 +31,7 @@
 {% include "footer.html" %}
 
 <script>
-
+    let channels = document.getElementById('channels')
     // Initialises SOCKET.IO connection
     const socket = io()
     // Once connected, the event is triggered 
@@ -32,6 +39,14 @@
         console.log('connected !')
         // Send the event to the server
         socket.emit('event-name', { ladata: 'bonjour' })
+    })
+    socket.on('channelRegistered', data => {
+            console.log('teeeeeeeeeeest')
+            console.log(data.data)
+            var opt = document.createElement('option');
+            opt.value = data.data.channelId;
+            opt.innerHTML = data.data.title;
+            channels.appendChild(opt);
     })
     
     /**
@@ -43,7 +58,7 @@
     }
 
     window.addEventListener('load', function () {
-
+       
         //We get the chat interface element
         let testinterface = document.querySelector(".chat-interface")
         //We go to the bottom of the scrolldown of the chat interface
@@ -85,6 +100,10 @@
             //We scroll down the interface
             testinterface.scrollTop = testinterface.scrollHeight
             data = ""
+        })
+
+        channels.addEventListener("change", ()=>{
+            socket.emit('changeChannel', {data : channels.value})
         })
     })
 

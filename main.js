@@ -4,6 +4,12 @@ const port = 3001
 const db = require('./db')
 const router = require('./router')
 const nunjucks = require('nunjucks')
+const session = require('express-session')
+var cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
+
+// configure socket.io
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require('socket.io')
@@ -17,25 +23,29 @@ nunjucks.configure('views', {
     autoescape: true,
     express: app
 })
-const session = require('express-session')
 let database = new db()
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.use(express.static('styles'))
 app.use('/pages', router)
-app.use(session({
-  
-    // It holds the secret key for session
-    secret: 'Your_Secret_Key',
-  
-    // Forces the session to be saved
-    // back to the session store
+// store = new connect.middleware.session.MemoryStore();
+var store = new session.MemoryStore;
+
+const sessionMiddleware = session({
+    secret: 'sssssshhhhhhh',
     resave: true,
-  
-    // Forces a session that is "uninitialized"
-    // to be saved to the store
-    saveUninitialized: true
-}))
+    saveUninitialized: true,
+    cookie: { maxAge: 60000 }
+})
+
+app.use(sessionMiddleware)
+
+io.use((socketClient, next) => {
+    sessionMiddleware(socketClient.request, {}, next);
+    // sessionMiddleware(socket.request, socket.request.res, next); will not work with websocket-only
+    // connections, as 'socket.request.res' will be undefined in that case
+});
+
 
 
 /**
@@ -53,6 +63,17 @@ io.on('connection', socketClient => {
             io.emit('messageRegistered', { message: data.data, pseudo: data.cookieValue })
         })
 	})
+
+    socketClient.on('channel-sent', async(data) => {
+        console.log(data)
+        var newChannel = await database.addChannel(data.data)
+            io.emit('channelRegistered', {data : newChannel})
+    })
+
+    socketClient.on('changeChannel', async(data) => {
+        let messageList = await d
+        io.emit('channelRegistered', {data : newChannel})
+    })
 
 })
 
@@ -129,9 +150,11 @@ app.post('/register', async (req, res) => {
 //We handle the 'delete/:id' route to delete a user 
 app.post('/delete/:id', async(req, res) => {
     let castedId = mongoose.Types.ObjectId(req.params.id)
-    let deleted = await database.deleteUser(castedId)
+    console.log('user id to delete : ' + req.params.id)
+    let deleted = await database.deleteUser(req.params.id)
     if(deleted){
-        res.json('user successfuly deleted')
+        console.log('deleted')
+        res.redirect('/interfaceAdmin')
     }
     else{
         res.json('User could not be deleted')
@@ -153,6 +176,7 @@ app.get('/chat', async(req,res) => {
     if (req.session.mail) {
         res.render('chat.html', {
             messages : myArray,
+            channels : await database.getChannels(),
             isConnected: true
         })
     } else {
@@ -163,6 +187,7 @@ app.get('/chat', async(req,res) => {
 app.get('/interfaceAdmin', async(req,res) => {
     let user = await database.getUser(req.session.mail)
     let users = await database.Auth.find()
+
     if (user && user.admin) {
         res.render('interfaceAdmin.html', {
             userList: users,
@@ -179,6 +204,6 @@ app.get('/error', (req, res) => {
 
 //We establish the socket.IO connection
 server.listen(8082, () => {
-    console.log('connecté au serveur')
+    console.log('listenning on 8082')
 })
 

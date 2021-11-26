@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const { request } = require('express');
 require('dotenv').config();
+
 const saltRounds = 10;
 
-/** Class representing the database. */
 class Database{
     dbSchema = new mongoose.Schema({
         mail: String,
@@ -19,7 +20,7 @@ class Database{
     channelSchema = new mongoose.Schema({
         title: String,
         channelId : Number
-    })
+    }, { timestamps : true })
     Auth = mongoose.model('auth', this.dbSchema);
     Message = mongoose.model('message', this.messageSchema)
     Channel = mongoose.model('channel', this.channelSchema)
@@ -29,6 +30,12 @@ class Database{
     }
     async connect() {
         await mongoose.connect(process.env.URL_DB);
+    }
+
+    async getLatestChannel(){
+        //var latestChannel = await this.Channel.findOne(({}, { sort: [['created_at', -1]]}))
+        var latestChannel = await this.Channel.findOne().sort({'_id':-1}).limit(1)
+        return latestChannel.channelId
     }
     
     /**
@@ -77,6 +84,19 @@ class Database{
         });
     }
 
+    async getChannels() {
+        return await this.Channel.find()
+    }
+
+    async addChannel(title) {
+        let channel = this.Channel({
+            title : title,
+            channelId : await this.getLatestChannel() + 1
+        })
+        await channel.save();
+        return channel
+    }
+
     /**
      * Deletes a user with his id
      * @param {number} userId 
@@ -84,11 +104,11 @@ class Database{
      */
     async deleteUser(userId) {
         let deletedUser = this.getUserById(userId)
-        await this.Auth.deleteOne({deletedUser});
         if(deletedUser){
-            return false
+            
+            return await this.Auth.deleteOne({ _id : userId });
         }
-        return true
+        return false
     }
 
     /**
@@ -128,12 +148,6 @@ class Database{
         return user.admin;
     }
 
-    /**
-     * Push the message content and author in db
-     * @param {String} message 
-     * @param {String} pseudo
-     * @return {Message}
-     */
     async registerMessage(message, pseudo){
         let messageCoucou = new this.Message({
             content: message,
@@ -144,21 +158,10 @@ class Database{
         return messageCoucou
     }
 
-    /**
-     * Check validity of email
-     * @param {String} email
-     * @return {Boolean}
-     */
     validateEmail(mail) {
         var re = /\S+@\S+.\S+/;
         return re.test(mail);
     }
-
-    /**
-     * Check validity of password (8 characters minimum, one uppercase and one lowercase and one number)
-     * @param {String} password
-     * @return {Boolean}
-     */
     validatePassword(password) {
         var re =/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z0-9]).{8,}$/
         return re.test(password);

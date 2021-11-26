@@ -16,11 +16,49 @@
         </form>
     </div>
 </div>
+
+<div class="channels-container">
+    {% for channel in channels %}
+    <div class="channel">
+        <p>{{ channel.title }} - id : {{ channel.channelId }}</p>
+    </div>
+    {% endfor %}
+</div>
+
+<h2>Créer un channel</h2>
+<!-- <form action="/add-channel" method="post"> -->
+    <div>
+        <input type="text" name="title" placeholder="titre du channel" id="title">
+        <input type="submit" id="save-channel">
+    </div>
+    
+<!-- </form> -->
     
 
 <script>
+    // Initialises SOCKET.IO connection
+    const socket = io()
+
+    document.querySelector("#formAdmin").action = "/delete/" + document.querySelector("#selection").value
     document.querySelector("#selection").addEventListener("change", ()=>{
         document.querySelector("#formAdmin").action = "/delete/" + document.querySelector("#selection").value
     })
+
+    document.getElementById('save-channel').addEventListener('click', () => {
+        socket.emit('channel-sent', { data: document.getElementById('title').value })
+    })
+
+/**
+ * Catches the messageRegistered event
+ * @param {[Object Object]} data
+ */
+socket.on('messageRegistered', data => {
+    //We add the content of 'data' to the chat interface, the pseudo of the author and the content of the message
+    testinterface.innerHTML += data.pseudo + ' : ' + data.message + '<br>'
+    //We scroll down the interface
+    testinterface.scrollTop = testinterface.scrollHeight
+    data = ""
+})
+
 </script>
 {% include "footer.html" %}

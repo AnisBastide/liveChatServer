@@ -1,0 +1,20 @@
+{% include "layout.html" %}
+
+{% include "title.html" %}
+
+{% include "navbar.html" %}
+
+    <div class="channels-container">
+        {% for channel in channels %}
+        <div class="channel">
+            <p>{{ channel.title }} - id : {{ channel.channelId }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <form action="/admin" method="post">
+        <input type="text" name="title" placeholder="titre du channel">
+        <input type="submit">
+    </form>
+{% include "footer.html" %}
+
