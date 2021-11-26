@@ -131,7 +131,7 @@ app.post('/delete/:id', async(req, res) => {
     let castedId = mongoose.Types.ObjectId(req.params.id)
     let deleted = await database.deleteUser(castedId)
     if(deleted){
-        res.end()
+        res.json('user successfuly deleted')
     }
     else{
         res.json('User could not be deleted')
