@@ -71,7 +71,7 @@ io.on('connection', socketClient => {
     })
 
     socketClient.on('changeChannel', async(data) => {
-        let messageList = await d
+        // let messageList = await d
         io.emit('channelRegistered', {data : newChannel})
     })
 
