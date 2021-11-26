@@ -59,9 +59,16 @@ io.on('connection', socketClient => {
 
 //We handle the '/' route
 app.get('/', async (req, res) => {
-    res.render('home.html', {
-        title : req.session.mail || 'test session' 
-    })
+    if (req.session.mail) {
+        res.render('home.html', {
+            title : req.session.mail,
+            isConnected: true
+        })
+    } else {
+        res.render('home.html', {
+            title : req.session.mail
+        })
+    }
 })
 
 //We handle the login and check if user is existing then create the cookies of his session
@@ -95,16 +102,21 @@ app.get('/login', (req, res) => {
     res.render('login.html')
 });
 
+app.get('/register', (req, res) => {
+    res.render('register.html')
+});
+
 //We handle the registering of the user
 app.post('/register', async (req, res) => {
-    let user = await database.Auth.findOne({mail:req.body['mail']})
-    var userPseudo = await database.Auth.findOne({pseudo:req.body['pseudo']})
+    let user = await database.Auth.findOne({mail:req.body['regmail']})
+    var userPseudo = await database.Auth.findOne({pseudo:req.body['regpseudo']})
     //If the email and the pseudo doesn't already exist we're registering the user
     if (!user && !userPseudo) {
-        await database.addUser(req.body['mail'],req.body['password'], req.body['pseudo'])
+        await database.addUser(req.body['regmail'],req.body['regpassword'], req.body['regpseudo'])
         .then(()=>{
             res.render('home.html', {
-                title : 'ENREGISTRE !'
+                title : 'ENREGISTRE !',
+                isConnected: true
             })
         })
     } else {
@@ -140,7 +152,8 @@ app.get('/chat', async(req,res) => {
     let myArray = await database.Message.find({channelId: 1})
     if (req.session.mail) {
         res.render('chat.html', {
-            messages : myArray
+            messages : myArray,
+            isConnected: true
         })
     } else {
         res.redirect('/login');
@@ -148,16 +161,21 @@ app.get('/chat', async(req,res) => {
 })
 
 app.get('/interfaceAdmin', async(req,res) => {
-    let user = await database.getUser(session.mail)
+    let user = await database.getUser(req.session.mail)
     let users = await database.Auth.find()
     if (user && user.admin) {
         res.render('interfaceAdmin.html', {
-            userList: users
+            userList: users,
+            isConnected: true
         })
     } else {
-        res.redirect('/');
+        res.redirect('/error');
     }
 })
+
+app.get('/error', (req, res) => {
+    res.render('error.html')
+});
 
 //We establish the socket.IO connection
 server.listen(8082, () => {
