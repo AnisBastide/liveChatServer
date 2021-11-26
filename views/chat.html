@@ -43,22 +43,33 @@
 
     window.addEventListener('load', function () {
 
-        // let messageExample = {
-        //     content: "salut c'est un message",
-        //     time: Date.now()
-        // }
-
-        // let htmlMessage = '<div class="messageContainer"><p class="date">' + messageExample.time
-        //  + ' : </p><p class="message">' + messageExample.content + '</p></div>'
+        let testinterface = document.querySelector(".chat-interface")
+        testinterface.scrollTop = testinterface.scrollHeight
 
         document.querySelector("#sendMsg").addEventListener("click", ()=>{
             //displayMessage(htmlMessage)
+            var cookieUser = document.cookie
+            const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('pseudo='))
+            .split('=')[1];
+            console.log(cookieUser);
+
+            console.log("cookie : " + cookieValue);
             let content = document.getElementById('message-content').value
-            
-            socket.emit('message-sent', { 
-                content: content, 
-                cookie : document.cookie
-            })
+            document.getElementById('message-content').value = ""
+            socket.emit('message-sent', { data: content, cookieValue })
+
+        })
+
+        socket.on('messageRegistered', data => {
+            console.log(' la data :' + data)
+            console.log(data.message)
+            console.log(data.pseudo)
+            document.querySelector(".chat-interface").innerHTML += data.pseudo + ' : ' + data.  message + '<br>'
+            let testinterface = document.querySelector(".chat-interface")
+            testinterface.scrollTop = testinterface.scrollHeight
+            data = ""
         })
     })
 
