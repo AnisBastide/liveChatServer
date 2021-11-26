@@ -10,6 +10,8 @@ const { Server } = require('socket.io')
 const io = new Server(server);
 var cookieParser = require('cookie-parser');
 app.use(cookieParser());
+var mongoose = require('mongoose');
+
 
 nunjucks.configure('views', {
     autoescape: true,
@@ -53,11 +55,6 @@ io.on('connection', socketClient => {
 	})
 
 })
-
-// async function getMessages() {
-//     let myArray = await database.Message.find({channelId: 1})
-//     return myArray
-// }
 
 
 //We handle the '/' route
@@ -117,9 +114,10 @@ app.post('/register', async (req, res) => {
     }
 })
 
-//We handle the '/:id' route to delete a user 
-app.delete('/:id', async(req, res) => {
-    let deleted = await database.deleteUser(req.params.id)
+//We handle the 'delete/:id' route to delete a user 
+app.post('/delete/:id', async(req, res) => {
+    let castedId = mongoose.Types.ObjectId(req.params.id)
+    let deleted = await database.deleteUser(castedId)
     if(deleted){
         res.end()
     }
@@ -130,7 +128,7 @@ app.delete('/:id', async(req, res) => {
 
 //We handle the '/:id' route to update a user 
 app.patch('/:id', async(req, res) => {
-    let user = await database.getUserById('id')
+    let user = await database.getUserById(req.params.id)
     let newUserInfo = new  database.Auth({mail:req.body['mail'],password:req.body['password']})
     await database.updateUser(user,newUserInfo)
     res.end()
@@ -146,6 +144,18 @@ app.get('/chat', async(req,res) => {
         })
     } else {
         res.redirect('/login');
+    }
+})
+
+app.get('/interfaceAdmin', async(req,res) => {
+    let user = await database.getUser(session.mail)
+    let users = await database.Auth.find()
+    if (user && user.admin) {
+        res.render('interfaceAdmin.html', {
+            userList: users
+        })
+    } else {
+        res.redirect('/');
     }
 })
 

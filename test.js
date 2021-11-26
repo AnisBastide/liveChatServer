@@ -1,7 +1,9 @@
 let axios = require('axios')
 axios.get("http://localhost:8082/chat")
     .then(function(response){
-        console.log(response.request._redirectable._redirectCount)
+        if (response.request._redirectable._redirectCount > 0) {
+            console.log("redirection success")
+        }
     })
 
 axios.post("http://localhost:8082/login",{
@@ -10,7 +12,6 @@ axios.post("http://localhost:8082/login",{
 })
     .then(function(response){
         console.log('SUCESSFULL login')
-        console.log(response.request.cookie)
     })
     .catch(function (err){
         console.log('ERROR login')

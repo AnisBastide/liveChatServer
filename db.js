@@ -83,8 +83,8 @@ class Database{
      * @returns {Boolean}
      */
     async deleteUser(userId) {
-        await this.Auth.deleteUser(userId);
         let deletedUser = this.getUserById(userId)
+        await this.Auth.deleteOne({deletedUser});
         if(deletedUser){
             return false
         }

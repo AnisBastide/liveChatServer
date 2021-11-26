@@ -1,0 +1,26 @@
+{% include "layout.html" %}
+
+{% include "title.html" %}
+
+{% include "navbar.html" %}
+
+<div id ="interfaceAdmin">
+    <div class="interfaceContainer">
+        <form id="formAdmin" method="POST">
+            <select id="selection">
+                {% for user in userList %}
+                <option value={{ user.id }}>{{ user.mail }}</option>            
+                {% endfor %}
+            </select>
+            <button type="submit">Supprimer</button></a>
+        </form>
+    </div>
+</div>
+    
+
+<script>
+    document.querySelector("#selection").addEventListener("change", ()=>{
+        document.querySelector("#formAdmin").action = "/delete/" + document.querySelector("#selection").value
+    })
+</script>
+{% include "footer.html" %}
