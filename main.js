@@ -35,45 +35,42 @@ app.use(session({
     saveUninitialized: true
 }))
 
+
+/**
+ * Catches the connection event to the server socket.io
+ * @param {[Object Object]} socketClient
+ */
 io.on('connection', socketClient => {
 	console.log('Un client est connecté', socketClient.id)
-
+    //When a 'message-sent' event is emitted
     socketClient.on('message-sent', data => {
-		console.log(socketClient.id, 'message-sent', data)
-        console.log('session mail : ' + session.mail)
-        console.log(session.pseudo)
+        //we push the message in the database
         database.registerMessage(data.data, data.cookieValue)
         .then(async ()=>{
-            let messages = await getMessages()
-            console.log("on rentre la dedans")
-            let newMessage = data.data.content
-            io.emit('messageRegistered', { message: data.data, pseudo: data.cookieValue });
-
+            //If we pushed succesfully, we emit the 'messageRegistered' event
+            io.emit('messageRegistered', { message: data.data, pseudo: data.cookieValue })
         })
 	})
 
 })
 
-async function getMessages() {
-    let myArray = await database.Message.find({channelId: 1})
-    return myArray
-}
+// async function getMessages() {
+//     let myArray = await database.Message.find({channelId: 1})
+//     return myArray
+// }
 
+
+//We handle the '/' route
 app.get('/', async (req, res) => {
-    try {
-        console.log(session.pseudo)
-    } catch {
-
-    }
     res.render('home.html', {
         title : req.session.mail || 'test session' 
     })
 })
 
-
+//We handle the '/login' route
 app.post('/login', async (req, res) => {
     var user = await database.getUser(req.body['mail'])
-    console.log(user)
+    var userPseudo = await database.getUser(req.body['Pseudo'])
     if (user && database.checkPwd(user.password, req.body['password'])) {
         console.log("session id : " + req.session.id)
         globalThis.pseudoUser = res.cookie('mail', req.body['mail'])

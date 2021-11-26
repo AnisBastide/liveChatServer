@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const { request } = require('express');
 require('dotenv').config();
-
 const saltRounds = 10;
 
+/** Class representing the database. */
 class Database{
     dbSchema = new mongoose.Schema({
         mail: String,
@@ -129,6 +128,12 @@ class Database{
         return user.admin;
     }
 
+    /**
+     * Push the message content and author in db
+     * @param {String} message 
+     * @param {String} pseudo
+     * @return {Message}
+     */
     async registerMessage(message, pseudo){
         let messageCoucou = new this.Message({
             content: message,
@@ -139,10 +144,21 @@ class Database{
         return messageCoucou
     }
 
+    /**
+     * Check validity of email
+     * @param {String} email
+     * @return {Boolean}
+     */
     validateEmail(mail) {
         var re = /\S+@\S+.\S+/;
         return re.test(mail);
     }
+
+    /**
+     * Check validity of password (8 characters minimum, one uppercase and one lowercase and one number)
+     * @param {String} password
+     * @return {Boolean}
+     */
     validatePassword(password) {
         var re =/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z0-9]).{8,}$/
         return re.test(password);

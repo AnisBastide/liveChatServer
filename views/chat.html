@@ -27,12 +27,12 @@
 
 <script>
 
-    // Initialise la connexion au serveur Socket.IO
+    // Initialises SOCKET.IO connection
     const socket = io()
-    // Une fois connecté, l'evenement "connect" est déclenché
+    // Once connected, the event is triggered 
     socket.on('connect', () => {
         console.log('connected !')
-        // Envoi de l'event "event-name" au serveur
+        // Send the event to the server
         socket.emit('event-name', { ladata: 'bonjour' })
     })
     
@@ -45,17 +45,17 @@
 
         let testinterface = document.querySelector(".chat-interface")
         testinterface.scrollTop = testinterface.scrollHeight
+        let inputMsg = document.getElementById('message-content')
 
-        // let messageExample = {
-        //     content: "salut c'est un message",
-        //     time: Date.now()
-        // }
 
-        // let htmlMessage = '<div class="messageContainer"><p class="date">' + messageExample.time
-        //  + ' : </p><p class="message">' + messageExample.content + '</p></div>'
+        inputMsg.addEventListener("keyup", function(event) {
+            event.preventDefault();
+            if (event.keyCode === 13) {
+                document.querySelector("#sendMsg").click();
+            }
+        });
 
         document.querySelector("#sendMsg").addEventListener("click", ()=>{
-            //displayMessage(htmlMessage)
             var cookieUser = document.cookie
             const cookieValue = document.cookie
             .split('; ')
@@ -64,8 +64,8 @@
             console.log(cookieUser);
 
             console.log("cookie : " + cookieValue);
-            let content = document.getElementById('message-content').value
-            document.getElementById('message-content').value = ""
+            let content = inputMsg.value
+            inputMsg.value = ""
             socket.emit('message-sent', { data: content, cookieValue })
 
         })
@@ -78,11 +78,6 @@
             let testinterface = document.querySelector(".chat-interface")
             testinterface.scrollTop = testinterface.scrollHeight
             data = ""
-            // data.messages.forEach(element => {
-            //     console.log(element.content)
-            //     var content = element.content
-            //     displayMessage(content)
-            // });
         })
     })
 
