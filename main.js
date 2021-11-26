@@ -4,11 +4,12 @@ const port = 3001
 const db = require('./db')
 const router = require('./router')
 const nunjucks = require('nunjucks')
-
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require('socket.io')
 const io = new Server(server);
+var cookieParser = require('cookie-parser');
+app.use(cookieParser());
 
 nunjucks.configure('views', {
     autoescape: true,
@@ -37,38 +38,49 @@ app.use(session({
 io.on('connection', socketClient => {
 	console.log('Un client est connecté', socketClient.id)
 
-	socketClient.on('event-name', data => {
-		console.log(socketClient.id, 'event-name', data)
-	})
-
     socketClient.on('message-sent', data => {
 		console.log(socketClient.id, 'message-sent', data)
         console.log('session mail : ' + session.mail)
+        console.log(session.pseudo)
+        database.registerMessage(data.data, data.cookieValue)
+        .then(async ()=>{
+            let messages = await getMessages()
+            console.log("on rentre la dedans")
+            let newMessage = data.data.content
+            io.emit('messageRegistered', { message: data.data, pseudo: data.cookieValue });
 
-        database.registerMessage(data.data, session.pseudo)
+        })
 	})
 
 })
 
+async function getMessages() {
+    let myArray = await database.Message.find({channelId: 1})
+    return myArray
+}
+
 app.get('/', async (req, res) => {
-    //database.hashPwd('tetstkjqsjshjlqdhs')
+    try {
+        console.log(session.pseudo)
+    } catch {
+
+    }
     res.render('home.html', {
         title : req.session.mail || 'test session' 
     })
 })
 
+
 app.post('/login', async (req, res) => {
-    let user = await database.getUser(req.body['mail'])
+    var user = await database.getUser(req.body['mail'])
+    console.log(user)
     if (user && database.checkPwd(user.password, req.body['password'])) {
-
-
+        console.log("session id : " + req.session.id)
+        globalThis.pseudoUser = res.cookie('mail', req.body['mail'])
+        res.cookie('pseudo', user.pseudo)
         req.session.mail = req.body['mail']
         session.mail = req.body['mail']
         session.pseudo = user.pseudo
-        // console.log('req.session.mail : ' + req.session.mail)
-        // console.log('req.body[mail] : ' + req.body['mail'])
-
-        
         res.redirect('/');
     } else {
         res.render('home.html', {
@@ -86,15 +98,19 @@ app.get('/logout', (req, res) => {
     })
 });
 
+app.get('/login', (req, res) => {
+    res.render('login.html')
+});
+
 app.post('/register', async (req, res) => {
     let user = await database.Auth.findOne({mail:req.body['mail']})
     if (!user) {
         let newUser = await database.addUser(req.body['mail'],req.body['password'], req.body['pseudo'])
-        if (newUser) {
+        .then((success)=>{
             res.render('home.html', {
                 title : 'ENREGISTRE !'
             })
-        }
+        })
     } else {
         res.render('home.html', {
             title : 'ce mail existe deja !'
@@ -117,15 +133,7 @@ app.patch('/:id', async(req, res) => {
     let newUserInfo = new  database.Auth({mail:req.body['mail'],password:req.body['password']})
     await database.updateUser(user,newUserInfo)
     res.end()
-})
-
-// app.get('/:id', async (req, res) => {
-//     return await database.getUserById(req.params.id)
-// })
-
-// app.listen(port, () => {
-//     console.log(`Example app listening at http://localhost:${port}`)
-// })
+}) 
 
 app.get('/chat', async(req,res) => {
     console.log('reqsession : ' + req.session.mail)
@@ -135,11 +143,11 @@ app.get('/chat', async(req,res) => {
             messages : myArray
         })
     } else {
-        res.redirect('/pages/login');
+        res.redirect('/login');
     }
 })
 
 server.listen(8082, () => {
-    console.log('dgsfhgjhjkkkugjkfhdghsghghjgfhjdxwxh')
+    console.log('connecté au serveur')
 })
 

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const { request } = require('express');
 require('dotenv').config();
 
 const saltRounds = 10;
@@ -28,7 +29,7 @@ class Database{
         this.connect()
     }
     async connect() {
-        await mongoose.connect(process.env.URL_DB);
+        await mongoose.connect('mongodb://localhost:27017/test');
     }
     
     /**
