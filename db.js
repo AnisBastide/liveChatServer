@@ -29,7 +29,7 @@ class Database{
         this.connect()
     }
     async connect() {
-        await mongoose.connect('mongodb://localhost:27017/test');
+        await mongoose.connect(process.env.URL_DB);
     }
     
     /**
