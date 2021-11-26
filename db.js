@@ -20,7 +20,7 @@ class Database{
     channelSchema = new mongoose.Schema({
         title: String,
         channelId : Number
-    })
+    }, { timestamps : true })
     Auth = mongoose.model('auth', this.dbSchema);
     Message = mongoose.model('message', this.messageSchema)
     Channel = mongoose.model('channel', this.channelSchema)
@@ -30,6 +30,12 @@ class Database{
     }
     async connect() {
         await mongoose.connect(process.env.URL_DB);
+    }
+
+    async getLatestChannel(){
+        //var latestChannel = await this.Channel.findOne(({}, { sort: [['created_at', -1]]}))
+        var latestChannel = await this.Channel.findOne().sort({'_id':-1}).limit(1)
+        return latestChannel.channelId
     }
     
     /**
@@ -78,18 +84,31 @@ class Database{
         });
     }
 
+    async getChannels() {
+        return await this.Channel.find()
+    }
+
+    async addChannel(title) {
+        let channel = this.Channel({
+            title : title,
+            channelId : await this.getLatestChannel() + 1
+        })
+        await channel.save();
+        return channel
+    }
+
     /**
      * Deletes a user with his id
      * @param {number} userId 
      * @returns {Boolean}
      */
     async deleteUser(userId) {
-        await this.Auth.deleteUser(userId);
         let deletedUser = this.getUserById(userId)
         if(deletedUser){
-            return false
+            
+            return await this.Auth.deleteOne({ _id : userId });
         }
-        return true
+        return false
     }
 
     /**

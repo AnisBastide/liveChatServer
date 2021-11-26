@@ -5,6 +5,13 @@
 {% include "navbar.html" %}
 
 
+    <div>
+        <select id="channels">
+            {% for channel in channels %}
+            <option value={{ channel.channelId }}>{{ channel.title }}</option>
+            {% endfor %}
+        </select>
+    </div>
     <div id="chat">
         <div class='chat-container'>
             <div class="chat-interface">
@@ -27,47 +34,73 @@
 
 <script>
 
-    // Initialise la connexion au serveur Socket.IO
+    // Initialises SOCKET.IO connection
     const socket = io()
-    // // Une fois connecté, l'evenement "connect" est déclenché
-    // socket.on('connect', () => {
-    //     console.log('connected !')
-    //     // Envoi de l'event "event-name" au serveur
-    //     socket.emit('event-name', { ladata: 'bonjour' })
-    // })
+    // Once connected, the event is triggered 
+    socket.on('connect', () => {
+        console.log('connected !')
+        // Send the event to the server
+        socket.emit('event-name', { ladata: 'bonjour' })
+    })
+    socket.on('channelRegistered', data => {
+            console.log('teeeeeeeeeeest')
+            console.log(data.data)
+            let channels = document.getElementById('channels')
+            var opt = document.createElement('option');
+            opt.value = data.data.channelId;
+            opt.innerHTML = data.data.title;
+            channels.appendChild(opt);
+    })
     
-
+    /**
+     * Inserts the message in the chat interface
+     * @param {String} htmlMessage
+     */
     function displayMessage(htmlMessage) {
         document.querySelector(".chat-interface").innerHTML += htmlMessage
     }
 
     window.addEventListener('load', function () {
-
+       
+        //We get the chat interface element
         let testinterface = document.querySelector(".chat-interface")
+        //We go to the bottom of the scrolldown of the chat interface
         testinterface.scrollTop = testinterface.scrollHeight
+        //We take thecontent of the input of the chat
+        let inputMsg = document.getElementById('message-content')
 
+        //we add an event to send a message when we press enter 
+        inputMsg.addEventListener("keyup", function(event) {
+            event.preventDefault();
+            if (event.keyCode === 13) {
+                document.querySelector("#sendMsg").click();
+            }
+        });
+
+        //We add an event to send a message when we click on the button 'envoyer' or when enter is pressed
         document.querySelector("#sendMsg").addEventListener("click", ()=>{
-            //displayMessage(htmlMessage)
-            var cookieUser = document.cookie
+            //>e parse the cookie to get the pseudo of the user
             const cookieValue = document.cookie
             .split('; ')
             .find(row => row.startsWith('pseudo='))
             .split('=')[1];
-            console.log(cookieUser);
-
-            console.log("cookie : " + cookieValue);
-            let content = document.getElementById('message-content').value
-            document.getElementById('message-content').value = ""
+            //We parse the value of the input to get the message content
+            let content = inputMsg.value
+            //We delete the content of the input
+            inputMsg.value = ""
+            //We emit an socket.io event 'message-sent'
             socket.emit('message-sent', { data: content, cookieValue })
 
         })
 
+        /**
+         * Catches the messageRegistered event
+         * @param {[Object Object]} data
+         */
         socket.on('messageRegistered', data => {
-            console.log(' la data :' + data)
-            console.log(data.message)
-            console.log(data.pseudo)
-            document.querySelector(".chat-interface").innerHTML += data.pseudo + ' : ' + data.  message + '<br>'
-            let testinterface = document.querySelector(".chat-interface")
+            //We add the content of 'data' to the chat interface, the pseudo of the author and the content of the message
+            testinterface.innerHTML += data.pseudo + ' : ' + data.message + '<br>'
+            //We scroll down the interface
             testinterface.scrollTop = testinterface.scrollHeight
             data = ""
         })

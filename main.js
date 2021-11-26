@@ -16,6 +16,8 @@ const { Server } = require('socket.io')
 const io = new Server(server);
 var cookieParser = require('cookie-parser');
 app.use(cookieParser());
+var mongoose = require('mongoose');
+
 
 nunjucks.configure('views', {
     autoescape: true,
@@ -38,9 +40,6 @@ const sessionMiddleware = session({
 
 app.use(sessionMiddleware)
 
-
-var users = [];
-
 io.use((socketClient, next) => {
     sessionMiddleware(socketClient.request, {}, next);
     // sessionMiddleware(socket.request, socket.request.res, next); will not work with websocket-only
@@ -48,48 +47,43 @@ io.use((socketClient, next) => {
 });
 
 
+
+/**
+ * Catches the connection event
+ * @param {[Object Object]} socketClient
+ */
 io.on('connection', socketClient => {
 	console.log('Un client est connecté', socketClient.id)
-
+    //When a 'message-sent' event is emitted
     socketClient.on('message-sent', data => {
-		console.log(socketClient.id, 'message-sent', data)
-        console.log('session mail : ' + session.mail)
-        console.log(session.pseudo)
+        //we push the message in the database
         database.registerMessage(data.data, data.cookieValue)
         .then(async ()=>{
-            let messages = await getMessages()
-            console.log("on rentre la dedans")
-            let newMessage = data.data.content
-            io.emit('messageRegistered', { message: data.data, pseudo: data.cookieValue });
-
+            //If we pushed succesfully, we emit the 'messageRegistered' event
+            io.emit('messageRegistered', { message: data.data, pseudo: data.cookieValue })
         })
 	})
 
+    socketClient.on('channel-sent', async(data) => {
+        console.log(data)
+        var newChannel = await database.addChannel(data.data)
+            io.emit('channelRegistered', {data : newChannel})
+    })
+
 })
 
-async function getMessages() {
-    let myArray = await database.Message.find({channelId: 1})
-    return myArray
-}
 
+//We handle the '/' route
 app.get('/', async (req, res) => {
-    try {
-        console.log(session.pseudo)
-    } catch {
-
-    }
     res.render('home.html', {
         title : req.session.mail || 'test session' 
     })
 })
 
-
+//We handle the login and check if user is existing then create the cookies of his session
 app.post('/login', async (req, res) => {
     var user = await database.getUser(req.body['mail'])
-    console.log(user)
     if (user && database.checkPwd(user.password, req.body['password'])) {
-        console.log("session id : " + req.session.id)
-        globalThis.pseudoUser = res.cookie('mail', req.body['mail'])
         res.cookie('pseudo', user.pseudo)
         req.session.mail = req.body['mail']
         session.mail = req.body['mail']
@@ -102,6 +96,7 @@ app.post('/login', async (req, res) => {
     }
 })
 
+//We handle the '/logout' route and disconnect the user
 app.get('/logout', (req, res) => {
     req.session.destroy(err => {
     if (err) {
@@ -111,55 +106,88 @@ app.get('/logout', (req, res) => {
     })
 });
 
+//We handle the '/login' route 
 app.get('/login', (req, res) => {
     res.render('login.html')
 });
 
+//We handle the registering of the user
 app.post('/register', async (req, res) => {
     let user = await database.Auth.findOne({mail:req.body['mail']})
-    if (!user) {
-        let newUser = await database.addUser(req.body['mail'],req.body['password'], req.body['pseudo'])
-        .then((success)=>{
+    var userPseudo = await database.Auth.findOne({pseudo:req.body['pseudo']})
+    //If the email and the pseudo doesn't already exist we're registering the user
+    if (!user && !userPseudo) {
+        await database.addUser(req.body['mail'],req.body['password'], req.body['pseudo'])
+        .then(()=>{
             res.render('home.html', {
                 title : 'ENREGISTRE !'
             })
         })
     } else {
         res.render('home.html', {
-            title : 'ce mail existe deja !'
+            title : 'ce mail ou ce pseudo existe deja !'
         })
     }
 })
 
-app.delete('/:id', async(req, res) => {
+//We handle the 'delete/:id' route to delete a user 
+app.post('/delete/:id', async(req, res) => {
+    let castedId = mongoose.Types.ObjectId(req.params.id)
+    console.log('user id to delete : ' + req.params.id)
     let deleted = await database.deleteUser(req.params.id)
     if(deleted){
-        res.end()
+        console.log('deleted')
+        res.redirect('/interfaceAdmin')
     }
     else{
         res.json('User could not be deleted')
     }
 })
 
+//We handle the '/:id' route to update a user 
 app.patch('/:id', async(req, res) => {
-    let user = await database.getUserById('id')
+    let user = await database.getUserById(req.params.id)
     let newUserInfo = new  database.Auth({mail:req.body['mail'],password:req.body['password']})
     await database.updateUser(user,newUserInfo)
     res.end()
 }) 
 
+//We handle the '/chat' route to render the chat page to the user
 app.get('/chat', async(req,res) => {
-    //console.log('reqsession : ' + req.session.mail)
+    //we display the messages of the first channel in the chat interface
     let myArray = await database.Message.find({channelId: 1})
     if (req.session.mail) {
         res.render('chat.html', {
-            messages : myArray
+            messages : myArray,
+            channels : await database.getChannels()
         })
     } else {
         res.redirect('/login');
     }
 })
 
+app.get('/interfaceAdmin', async(req,res) => {
+    let user = await database.getUser(session.mail)
+    let users = await database.Auth.find()
+
+    if (user && user.admin) {
+        res.render('interfaceAdmin.html', {
+            userList: users
+        })
+    } else {
+        res.redirect('/');
+    }
+})
+
+// app.post('/add-channel', async(req, res) => {
+//     let channel = new database.Channel({
+//         title : req.body.title,
+//         channelId : await database.getLatestChannel() + 1
+//     })
+//     await channel.save();
+// })
+
+//We establish the socket.IO connection
 server.listen(8082, () => {
     console.log('listenning on 8082')
 })
